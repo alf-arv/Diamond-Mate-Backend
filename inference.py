@@ -1,5 +1,5 @@
 """
-Diamond-mate
+Diamond-mate-backend
 
 Alf-arv, 2021
 """

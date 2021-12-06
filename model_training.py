@@ -1,5 +1,5 @@
 """
-Diamond-mate
+Diamond-mate-backend
 
 Alf-arv, 2021
 """
@@ -9,7 +9,6 @@ import json
 from utilities import one_hot_encode
 from keras.models import Sequential
 from keras.layers import Dense
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from keras.models import save_model
 from keras.optimizers import Adam
