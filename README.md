@@ -1,4 +1,4 @@
-# Diamond Mate REST backend
+# ML Diamond Pricing REST backend
 
 Flask REST-Api for getting ML-calculated diamond price predictions based on the provided parameters.
 
