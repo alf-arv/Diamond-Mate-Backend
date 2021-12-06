@@ -6,7 +6,6 @@ Alf-arv, 2021
 import sys
 import os
 import json
-from inference import do_inference
 from flask import request
 from flask import Flask
 from model_training import train_regression_estimator

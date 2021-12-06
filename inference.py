@@ -36,7 +36,7 @@ def infer_single_price(model: keras.models=None, data: pd.DataFrame=None) -> flo
     return prediction[0]
 
 
-def do_inference(model_path: str=None, data: dict=None, batch_transform: bool=False) -> float:
+def do_inference(model_path: str=None, data: dict=None) -> float:
     """
     Function to import model from the provided path, and pass the inference job ahead to the relevant function
     :param arg_model:
@@ -57,10 +57,6 @@ def do_inference(model_path: str=None, data: dict=None, batch_transform: bool=Fa
         imported_model = load_model(os.path.join(model_path, 'regression_estimator.h5'), custom_objects=None, compile=True)
     except:
         raise Exception('Model could not be loaded from the provided file path')
-
-    # Batch inference
-    if batch_transform:
-        result = -1 #TODO: Batch transform capability is to be implemented,
 
     # Single price inference
     else:
@@ -91,3 +87,25 @@ def do_inference(model_path: str=None, data: dict=None, batch_transform: bool=Fa
         result = infer_single_price(imported_model, extended_data_df)
 
     return result
+
+
+def do_batch_inference(model_path:str=None, data: dict=None) -> dict:
+    """
+    Function to import model from the provided path, and pass the inference job
+    to infer_single_price row by row
+
+    :param arg_model:
+    :param data:
+
+    @return: result of prediction
+    """
+
+    # Import the model from provided path
+    try:
+        imported_model = load_model(os.path.join(model_path, 'regression_estimator.h5'), custom_objects=None, compile=True)
+    except:
+        raise Exception('Model could not be loaded from the provided file path')
+
+    #TODO: go through data dict row by row and infer single prices
+    #TODO: return dict with list of all diamond's information together with their inferred prices
+    return -1
