@@ -1,5 +1,5 @@
 """
-Diamond-mate-backend
+Diamond-Mate-Backend
 
 Alf-arv, 2021
 """
@@ -9,7 +9,7 @@ import json
 from flask import request
 from flask import Flask
 from model_training import train_regression_estimator
-from inference import do_inference
+from inference import do_inference, do_batch_inference
 
 app = Flask(__name__)
 
@@ -24,16 +24,31 @@ def single_inference():
         "Clarity": request.args.get('Clarity'),
         "Cut": request.args.get('Cut')
         })
+        return json.dumps(str({"price_prediction":res}))
 
-        return json.dumps(str({"result":res[0]}))
+
+@app.route('/batch_inference', methods = ['GET'])
+def batch_inference():
+    if(request.method == 'GET'):
+        try:
+            batch_length = len(request.args.get('batch'))
+        except:
+            batch_length = 0
+
+        if batch_length > 0:
+            res = do_batch_inference(model_path='model', data={
+            "batch": request.args.get('batch')
+            })
+            return json.dumps(str(res))
+        else:
+            return json.dumps(str({"error": -1}))
 
 
 @app.route('/train_model', methods = ['POST'])
 def train_model():
     if(request.method == 'POST'):
-        print("Retraining the model")
         stat = train_regression_estimator(os.path.join('data', 'database.csv'), 'model')
-        return json.dumps(str({"status": stat}))
+        return json.dumps(str({"success": stat}))
 
 if __name__ == '__main__':
     app.run(threaded=False)

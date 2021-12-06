@@ -1,18 +1,23 @@
 """
-Diamond-mate-backend
+Diamond-Mate-Backend
 
 Alf-arv, 2021
 """
 import pandas as pd
 import random as rd
 
-def one_hot_encode(data: pd.DataFrame=None):
+def one_hot_encode(data: pd.DataFrame=None) -> pd.DataFrame:
+    """
+    One hot encode input DataFrame
+
+    :param data: input DataFrame
+    @return DataFrame with categorical data one-hot-encoded
+    """
 
     binarized_shape = pd.get_dummies(data['Shape'], prefix='shape')
     binarized_clarity = pd.get_dummies(data['Clarity'], prefix='clarity')
     binarized_color = pd.get_dummies(data['Color'], prefix='color')
     binarized_cut = pd.get_dummies(data['Cut'], prefix='cut')
-
 
     new_data = data.join(binarized_shape).join(binarized_clarity).join(binarized_color).join(binarized_cut)
     del new_data['Shape']
@@ -23,15 +28,34 @@ def one_hot_encode(data: pd.DataFrame=None):
     return new_data
 
 
+def create_inference_input(data: dict=None) -> pd.DataFrame:
+    """
+    Transform data dict to compatible dataframe
+
+    :param data: request dictionary
+    @return DataFrame ready for inference
+    """
+
+    # fault check
+    if data['Shape'] == None or data['Carat'] == None or data['Color'] == None or data['Cut'] == None or data['Clarity'] == None:
+        raise Exception('Data dictionary has wrong shape or contains None.')
+
+    for k, v in data.items():
+        data[k] = list([v])
+
+    return pd.DataFrame(data)
+
+
+
 def determine_pricing_classes(dataset: pd.DataFrame=None) -> pd.Series:
     """
     Function for determining the pricing classes based on percentiles internally in the dataset
 
     :param dataset: DataFrame of the diamond database to classify
-    :return: Pandas series with the pricing categories
+    @return: Pandas series with the pricing categories
     """
 
-    # TODO: how can this be done?
+    # TODO: In the future
 
     return np.series(None) # TODO: change
 

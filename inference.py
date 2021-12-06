@@ -1,10 +1,10 @@
 """
-Diamond-mate-backend
+Diamond-Mate-Backend
 
 Alf-arv, 2021
 """
 import keras
-from utilities import one_hot_encode
+from utilities import one_hot_encode, create_inference_input
 from keras.models import load_model
 import os
 import json
@@ -14,7 +14,6 @@ import pandas as pd
 
 # Added to suppress certain hardware-bound errors
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 
 def infer_single_price(model: keras.models=None, data: pd.DataFrame=None) -> float:
     """
@@ -27,9 +26,6 @@ def infer_single_price(model: keras.models=None, data: pd.DataFrame=None) -> flo
     # Make prediction
     prediction = model.predict(data)
 
-    # Check prediction's legitimity
-    #TODO: perform this check if possible
-
     # Return prediction or throw exception
     if prediction is None:
         raise Exception('Error occurred during prediction')
@@ -39,16 +35,13 @@ def infer_single_price(model: keras.models=None, data: pd.DataFrame=None) -> flo
 def do_inference(model_path: str=None, data: dict=None) -> float:
     """
     Function to import model from the provided path, and pass the inference job ahead to the relevant function
-    :param arg_model:
-    :param data:
+    :param model_path: path to model files
+    :param data: dictionary with diamond properties
 
     @return: result of prediction
     """
 
     # Fault check
-    if data:
-        if None in data or len(data.keys()) != 5:
-            raise Exception('Data dictionary has wrong shape or contains None.')
     if not model_path:
         raise Exception('No model was provided, or it was provided incorrectly.')
 
@@ -58,35 +51,31 @@ def do_inference(model_path: str=None, data: dict=None) -> float:
     except:
         raise Exception('Model could not be loaded from the provided file path')
 
-    # Single price inference
-    else:
-        # Transform data dict to compatible dataframe
-        for k, v in data.items():
-            data[k] = list([v])
-        data = pd.DataFrame(data)
+    # reshape data
+    data = create_inference_input(data)
 
-        # OHE
-        data_df = one_hot_encode(data)
+    # OHE
+    data_df = one_hot_encode(data)
 
-        # add the missing columns
-        try:
-            original_cols = json.load(open(os.path.join(model_path, 'model_properties.json'), 'r'))
-        except:
-            raise Exception('model_properties.json could not be loaded')
+    # add the missing columns
+    try:
+        original_cols = json.load(open(os.path.join(model_path, 'model_properties.json'), 'r'))
+    except:
+        raise Exception('model_properties.json could not be loaded')
 
-        extended_data_df = pd.DataFrame([[-1]*30], columns=original_cols['features'])
+    extended_data_df = pd.DataFrame([[-1]*30], columns=original_cols['features'])
 
-        # match up columns to the structure that the model expects, fill with zeros
-        for i in original_cols['features']:
-            if i in data_df.columns:
-                extended_data_df[i] = data_df[i][0]
-            else:
-                extended_data_df[i] = 0
+    # match up columns to the structure that the model expects, fill with zeros
+    for i in original_cols['features']:
+        if i in data_df.columns:
+            extended_data_df[i] = data_df[i][0]
+        else:
+            extended_data_df[i] = 0
 
-        # Infer the price
-        result = infer_single_price(imported_model, extended_data_df)
+    # Infer the price
+    result = infer_single_price(imported_model, extended_data_df)
 
-    return result
+    return float(result)
 
 
 def do_batch_inference(model_path:str=None, data: dict=None) -> dict:
@@ -97,15 +86,23 @@ def do_batch_inference(model_path:str=None, data: dict=None) -> dict:
     :param arg_model:
     :param data:
 
-    @return: result of prediction
+    @return: result dictionary
     """
+    # Unstringify the batch
+    data['batch'] = json.loads(data['batch'])
 
-    # Import the model from provided path
+    # Fail if structure is wrong
     try:
-        imported_model = load_model(os.path.join(model_path, 'regression_estimator.h5'), custom_objects=None, compile=True)
+        data['batch'][0]['Shape']
     except:
-        raise Exception('Model could not be loaded from the provided file path')
+        return False
 
-    #TODO: go through data dict row by row and infer single prices
-    #TODO: return dict with list of all diamond's information together with their inferred prices
-    return -1
+    # For each diamond in the batch, do inference and build response dictionary
+    predictions = {}
+    for n in range(len(data['batch'])):
+        predictions["diamond_"+str(n+1)] = {}
+        result = do_inference(model_path, data['batch'][n])
+        predictions["diamond_"+str(n+1)]['details'] = data['batch'][n]
+        predictions["diamond_"+str(n+1)]['price_prediction'] = result
+
+    return predictions

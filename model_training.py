@@ -18,7 +18,7 @@ def train_regression_estimator(database_path: str=None, model_save_path: str=Non
     Function for training a model to predict/estimate price of input diamond based on properties
     Exports trained model to model/regression_estimator.
 
-    :return: True if successful training and export, False otherwise
+    @return: True if successful training and export, False otherwise
     """
 
     # Import dataset
@@ -29,7 +29,7 @@ def train_regression_estimator(database_path: str=None, model_save_path: str=Non
 
     y = data['Price']
     del data['Price']
-    X = data # TODO: increase dataset, this is way too small
+    X = data
 
     x_train, x_test, y_train, y_test = train_test_split(X,
                                                         y,
@@ -37,7 +37,7 @@ def train_regression_estimator(database_path: str=None, model_save_path: str=Non
 
     # Construct neural network
     model = Sequential()
-    model.add(Dense(30, input_dim=X.shape[1], activation='relu'))#TODO: Optimize
+    model.add(Dense(30, input_dim=X.shape[1], activation='relu'))#TODO: Optimize further
     model.add(Dense(8, activation='relu'))
     model.add(Dense(1))
 
@@ -60,5 +60,3 @@ def train_regression_estimator(database_path: str=None, model_save_path: str=Non
     except:
         return False
     return True
-
-#train_regression_estimator(os.path.join('data', 'database.csv'), './model/') #TODO: Remove
