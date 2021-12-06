@@ -59,7 +59,7 @@ Response: ```{'success': [True or False]}```
 
 #### For inferring diamond prices
 
-- **regression_estimator.h5** in ```./model/``` this is exported and saved when training the model.
+- **regression_estimator.h5** in ```./model/```. This is exported automatically when training the model.
 
 ## How to run locally
 - Clone the repo
